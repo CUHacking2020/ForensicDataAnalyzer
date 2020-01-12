@@ -46,8 +46,11 @@ class GUI:
         window = Toplevel(root)
         window.geometry("950x650")
         
-        label = Label(window, text = "Search: ", font=("Courier",12)).pack(side=LEFT)
-        search = Entry(window).pack(side=LEFT)
+        search_but = Button(window, text = "Search",command=lambda:self.updateLB_sus(suspect_data, search.get(), mylist, suspect))
+        search_but.pack(side=LEFT)
+        search = Entry(window)
+        search.pack(side=LEFT)
+        
         scrollbar = Scrollbar(window)
         scrollbar.pack(side = RIGHT, fill = Y)
        
@@ -58,55 +61,97 @@ class GUI:
 
         suspect_data = suspect_profiles(data_file, suspect)
 
-        
-        mylist.insert(END, "Suspect : " + suspect)
-        mylist.insert(END, "")
-        mylist.insert(END, "      Time      -       Device  -  Room/DevID  -  Event")
-        mylist.insert(END, "")
-        for event in suspect_data:
-            time = datetime.fromtimestamp(int(event[0])).strftime("%c")
-
-
-            mylist.insert(END, time[:-5] + " | " + event[1] + " | " + event[2] +
-                          " | " + event[3])
-            mylist.insert(END, "")
+        self.updateLB_sus(suspect_data, search.get(), mylist, suspect)
 
 
     def data_window(self):
         window = Toplevel(root)
-        window.geometry("950x650")
+        window.geometry("1050x700")
+        data = analyzeFile(data_file)
 
-        label = Label(window, text = "Search: ", font=("Courier",12)).pack(side=LEFT)
-        search = Entry(window).pack(side=LEFT)
+        search_but = Button(window, text = "Search",command=lambda:self.updateLB(data, search.get(), mylist))
+        search_but.pack(side=LEFT)
+        search = Entry(window)
+        search.pack(side=LEFT)
+
+        
         scrollbar = Scrollbar(window)
         scrollbar.pack(side = RIGHT, fill = Y)
-       
+
         mylist = Listbox(window, yscrollcommand = scrollbar.set, height = 10)
         mylist.pack(side = LEFT, fill = BOTH)
         mylist.config(width = 130, font = ("Courier",12))
         scrollbar.config(command = mylist.yview)
 
-        mylist.insert(END, "All Collected Data: ")
-        
+        self.updateLB(data, -1, mylist)
 
+    def updateLB(self, data, keyword, mylist):
+        while mylist.size() > 0:
+            mylist.delete(0)
+            
+        mylist.insert(END, "All Collected Data: ")
+        mylist.insert(END, "")
+        mylist.insert(END, "      Time      -       Device  -  Room/DevID  -  Event  -  Name")
+        mylist.insert(END, "")
+            
+        for event in data:
+            time = datetime.fromtimestamp(int(event[0])).strftime("%c")
+            mylist.insert(END, time[:-5] + " | " + event[1] + " | " + event[2] +
+                          " | " + event[3] + " | " + event[4])
+            mylist.insert(END, "")
+
+        if keyword != -1:
+            count = 2
+            for event in data:
+                count += 2
+                time = datetime.fromtimestamp(int(event[0])).strftime("%c")
+                if keyword not in time and keyword not in event[1] and keyword not in event[2] and keyword not in event[3] and keyword not in event[4]:
+                    mylist.delete(count)
+                    mylist.delete(count)
+                    count -= 2
+
+    def updateLB_sus(self, data, keyword, mylist, suspect):
+        while mylist.size() > 0:
+            mylist.delete(0)
+            
+        mylist.insert(END, "Suspect : " + suspect)
+        mylist.insert(END, "")
+        mylist.insert(END, "      Time      -       Device  -  Room/DevID  -  Event")
+        mylist.insert(END, "")
+            
+        for event in data:
+            time = datetime.fromtimestamp(int(event[0])).strftime("%c")
+            mylist.insert(END, time[:-5] + " | " + event[1] + " | " + event[2] +
+                          " | " + event[3])
+            mylist.insert(END, "")
+
+        if keyword != -1:
+            count = 2
+            for event in data:
+                count += 2
+                time = datetime.fromtimestamp(int(event[0])).strftime("%c")
+                if keyword not in time and keyword not in event[1] and keyword not in event[2] and keyword not in event[3]:
+                    mylist.delete(count)
+                    mylist.delete(count)
+                    count -= 2
 
     def suspects_window(self):
         window = Toplevel(root)
-        window.geometry("1280x700")
+        window.geometry("1280x725")
         
         photo1 = PhotoImage(file = "veronica.png")
         img1 = photo1.subsample(3,3)
-        sus1 = Button(window,text="  Veronica\n  Hotel Guest", height = 200, width = 300, image = img1,compound="left",
+        sus1 = Button(window,text="  Veronica\n  Hotel Guest\n  (Deceased)", height = 200, width = 300, image = img1,compound="left",
                       command=lambda:self.suspect_profile_window("Veronica"))
         sus1.image = img1
-        sus1.grid(row=0, column = 1)
+        sus1.grid(row=0)
 
         photo2 = PhotoImage(file = "jason.png")
         img2 = photo2.subsample(3,3)
         sus2 = Button(window,text="  Jason\n  Hotel Guest", height = 200, width = 300, image = img2, compound = "left",
                       command=lambda:self.suspect_profile_window("Jason"))
         sus2.image = img2
-        sus2.grid(row=0)
+        sus2.grid(row=0, column=1)
 
         photo3 = PhotoImage(file = "thomas.png")
         img3 = photo3.subsample(3,3)
